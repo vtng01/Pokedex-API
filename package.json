@@ -1,0 +1,33 @@
+{
+  "name": "pokedex-api",
+  "version": "1.0.0",
+  "description": "The number one API for all your PokeVerse",
+  "main": "index.js",
+  "scripts": {
+    "seed": "node db/seed.js",
+    "start": "node index.js",
+    "start-dev": "nodemon index.js",
+    "test": "jest --watch-all"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vtng01/Pokedex-API.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vtng01/Pokedex-API/issues"
+  },
+  "homepage": "https://github.com/vtng01/Pokedex-API#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "jest": "^29.5.0",
+    "sequelize": "^6.31.1",
+    "sqlite3": "^5.1.6",
+    "supertest": "^6.3.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
