@@ -8,23 +8,23 @@ app.use(express.urlencoded({ extended: true }));
 
 // routes
 app.get("/", async (req, res, next) => {
-  res.send(`You just called ${req.method} method`);
+  res.send(`You just got ${req.method} methoded`);
 });
 
 app.post("/", async (req, res, next) => {
-  res.send(`You just called ${req.method} method`);
+  res.send(`You just got ${req.method} methoded`);
 });
 
 app.patch("/", async (req, res, next) => {
-  res.send(`You just called ${req.method} method`);
+  res.send(`You just got ${req.method} methoded`);
 });
 
 app.put("/", async (req, res, next) => {
-  res.send(`You just called ${req.method} method`);
+  res.send(`You just got ${req.method} methoded`);
 });
 
 app.delete("/", async (req, res, next) => {
-  res.send(`You just called ${req.method} method`);
+  res.send(`You just got ${req.method} methoded`);
 });
 
 export default app;
