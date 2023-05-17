@@ -1,7 +1,8 @@
 import express, { json } from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import { Users } from "./db/index.js";
+import { Users, PokeDex } from "./db/index.js";
+import {createUser, updateUser, createPokedexEntry, updatePokedexEntry, deletePokedexEntry} from "./utils.js";
 import jwt from "jsonwebtoken";
 dotenv.config();
 
@@ -53,13 +54,13 @@ app.post("/register", async (req, res, next) => {
   const { name, email, password, occupation } = req.body;
   const hashPw = await bcrypt.hash(password, SALT_COUNT);
   // create user
-  const user = await Users.create({
-    name: "ash",
-    email: email,
-    password: hashPw,
-    occupation: occupation,
-    isAdmin: false,
-  });
+  let user = req.body;
+  user['isAdmin'] = false;
+  try {
+    user = await createUser(user);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
   const id = user.getDataValue("id");
   const token = jwt.sign({ id, name, email, occupation }, JWT_SECRET);
   res.send({ message: "You're logged in", token });
@@ -79,19 +80,47 @@ app.use(async (req, res, next) => {
 });
 
 // routes
-app.get("/", async (req, res, next) => {
-  res.send(`You just got ${req.method} methoded`);
-});
-app.patch("/", async (req, res, next) => {
-  res.send(`You just got ${req.method} methoded`);
-});
-
-app.put("/", async (req, res, next) => {
-  res.send(`You just got ${req.method} methoded`);
+app.get("/pokedex", async (req, res, next) => {
+  let pokedex = PokeDex.findAll();
+  try {
+    res.send(pokedex);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
-app.delete("/", async (req, res, next) => {
-  res.send(`You just got ${req.method} methoded`);
+app.get("pokedex/:name", async (req, res, next) => {
+  let pokedex_entry = await Pokedex.findOne({ where: {
+    name: req.params.name,
+  }});
+  res.send(pokedex_entry);
+})
+
+app.post("/pokedex", async (req, res, next) => {
+  try {
+    await createPokedexEntry(req.body);
+    res.sendStatus(201);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+})
+
+app.put("/pokedex", async (req, res, next) => {
+  try {
+    await updatePokedexEntry(req.body);
+    res.sendStatus(201);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
+
+app.delete("/pokedex", async (req, res, next) => {
+  try {
+    await deletePokedexEntry(req.user);
+  } catch (err) {
+    res.status(400).send(err.mesage);
+  }
+  res.status(200).send(`You just got ${req.method} methoded`);
 });
 
 export default app;
