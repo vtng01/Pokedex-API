@@ -1,19 +1,15 @@
-import {db} from '../db.js';
-import { Sequelize, DataTypes} from 'sequelize';
+import { db } from "../db.js";
+import { Sequelize, DataTypes } from "sequelize";
 
-const Logs = db.define('Log', {
-    pokemonName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    entry: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    date: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    }
+const Logs = db.define("Log", {
+  pokemonName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  entry: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
 });
 
-export {Logs}
+export { Logs };

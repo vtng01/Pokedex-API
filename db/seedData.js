@@ -41,4 +41,18 @@ const pokemonSeedData = [
   },
 ];
 
-export { seedData, pokemonSeedData };
+const logsSeedData = [
+  {
+    pokemonName: "Pikachu",
+    entry: "Pikachu was added to the Pokedex by Prof. Oak",
+  },
+  {
+    pokemonName: "Charizard",
+    entry: "Charizard was added to the Pokedex by Prof. Yun",
+  },
+  {
+    pokemonName: "Blastoise",
+    entry: "Blastoise was added to the Pokedex by Prof. Smith",
+  },
+];
+export { seedData, pokemonSeedData, logsSeedData };

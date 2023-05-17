@@ -1,5 +1,5 @@
 import { db, Users, Pokedex, Logs } from "./index.js";
-import { seedData, pokemonSeedData } from "./seedData.js";
+import { seedData, pokemonSeedData, logsSeedData } from "./seedData.js";
 
 async function genUsers(usersObject) {
   await Users.bulkCreate(usersObject);
@@ -22,10 +22,15 @@ async function assignPokedexEntry() {
   await professors[1].addPokedex(pokemons[2]);
 }
 
+async function genInitialLogs(logsObject) {
+  await Logs.bulkCreate(logsObject);
+}
+
 export default async function seed() {
   await genUsers(seedData);
   await genPokemons(pokemonSeedData);
   await assignPokedexEntry();
+  await genInitialLogs(logsSeedData);
 }
 
 export { seed };
