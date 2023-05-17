@@ -11,10 +11,10 @@ async function genUsers(name, password, email, occupation, isAdmin) {
     });
 }
 
-async function seed() {
-    array.forEach(seedObj => {
+export default async function seed() {
+    for await (const seedObj of seedData) {
         await genUsers(seedObj.name, seedObj.password, seedObj.email, seedObj.occupation, seedObj.isAdmin);
-    });
+    }
 }
 
 export {seed};
