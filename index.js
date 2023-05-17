@@ -2,6 +2,7 @@ import express, { json } from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import { Users } from "./db/index.js";
+import {createUser, updateUser, createPokedexEntry, updatePokedexEntry, deletePokedexEntry} from "./utils.js";
 import jwt from "jsonwebtoken";
 dotenv.config();
 
@@ -53,13 +54,13 @@ app.post("/register", async (req, res, next) => {
   const { name, email, password, occupation } = req.body;
   const hashPw = await bcrypt.hash(password, SALT_COUNT);
   // create user
-  const user = await Users.create({
-    name: "ash",
-    email: email,
-    password: hashPw,
-    occupation: occupation,
-    isAdmin: false,
-  });
+  user = req.body;
+  user['isAdmin'] = false;
+  try {
+    user = await createUser(user);
+  } catch (err) {
+    res.status(401).send(err.message);
+  }
   const id = user.getDataValue("id");
   const token = jwt.sign({ id, name, email, occupation }, JWT_SECRET);
   res.send({ message: "You're logged in", token });

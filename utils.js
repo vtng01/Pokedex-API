@@ -16,7 +16,7 @@ async function updateUser(userObj) {
         let user = await Users.findOne({where : {
             email : userObj.email,
         }});
-        await user.update({userObj});
+        return await user.update({userObj});
     } catch (err) {
         throw new Error(err.message);
     }
@@ -24,7 +24,7 @@ async function updateUser(userObj) {
 
 async function createPokedexEntry(pokeObj) {
     try {
-        await PokeDex.create({pokeObj});
+        return await PokeDex.create({pokeObj});
     } catch (err) {
         throw new Error(err.message);
     }
