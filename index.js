@@ -1,6 +1,8 @@
 import express, { json } from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import { Users } from "./db/index.js";
+import jwt from "jsonwebtoken";
 dotenv.config();
 
 const app = express();
@@ -20,24 +22,10 @@ app.use(async (req, res, next) => {
     const [, token] = auth.split(" ");
     const userObj = jwt.verify(token, JWT_SECRET);
     // find user
-    res.send("Authorization was found in header");
+    const user = await Users.findByPk(userObj.id);
+    req.user = user;
     next();
   }
-});
-
-// authorization
-app.use(async (req, res, next) => {
-  const user = req.user;
-  if (user) {
-    next();
-  } else {
-    res.send("Could not find user");
-  }
-});
-
-// routes
-app.get("/", async (req, res, next) => {
-  res.send(`You just got ${req.method} methoded`);
 });
 
 // app.post("/", async (req, res, next) => {
@@ -46,6 +34,7 @@ app.get("/", async (req, res, next) => {
 app.post("/login", async (req, res, next) => {
   const { email, password } = req.body;
   //   find user
+  const user = await Users.findOne({ where: { email } });
   const isAMatch = await bcrypt.compare(password, user.password);
   if (isAMatch) {
     const token = jwt.sign(user, JWT_SECRET);
@@ -59,10 +48,35 @@ app.post("/register", async (req, res, next) => {
   const { name, email, password, occupation } = req.body;
   const hashPw = await bcrypt.hash(password, SALT_COUNT);
   // create user
-  const token = jwt.sign({ id, email }, JWT_SECRET);
+  const user = await Users.create({
+    name: "ash",
+    email: email,
+    password: hashPw,
+    occupation: occupation,
+    isAdmin: false,
+  });
+  const id = user.getDataValue("id");
+  const token = jwt.sign({ id, name, email, occupation }, JWT_SECRET);
   res.send({ message: "You're logged in", token });
 });
+// authorization
+app.use(async (req, res, next) => {
+  const user = req.user;
+  if (user) {
+    next();
+  } else {
+    res
+      .status(401)
+      .send(
+        "User could not be validated. Please Login or Register for an account."
+      );
+  }
+});
 
+// routes
+app.get("/", async (req, res, next) => {
+  res.send(`You just got ${req.method} methoded`);
+});
 app.patch("/", async (req, res, next) => {
   res.send(`You just got ${req.method} methoded`);
 });
