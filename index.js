@@ -80,6 +80,15 @@ app.use(async (req, res, next) => {
 });
 
 // routes
+app.put('/', async (req, res, next) => {
+  try {
+    await updateUser(req.body);
+    res.send(201);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+})
+
 app.get("/pokedex", async (req, res, next) => {
   let pokedex = PokeDex.findAll();
   try {
