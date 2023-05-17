@@ -35,9 +35,14 @@ app.post("/login", async (req, res, next) => {
   const { email, password } = req.body;
   //   find user
   const user = await Users.findOne({ where: { email } });
-  const isAMatch = await bcrypt.compare(password, user.password);
+  const userPassword = user.getDataValue("password");
+  const isAMatch = await bcrypt.compare(password, userPassword);
+  const id = user.getDataValue("id");
+  const name = user.getDataValue("name");
+  const userEmail = user.getDataValue("email");
+  const occupation = user.get("occupation");
   if (isAMatch) {
-    const token = jwt.sign(user, JWT_SECRET);
+    const token = jwt.sign({ id, name, userEmail, occupation }, JWT_SECRET);
     res.send({ message: "You're logged in!", token });
   } else {
     res.sendStatus(401);
