@@ -1,7 +1,7 @@
 import express, { json } from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import { Users, Pokedex } from "./db/index.js";
+import { Users, Pokedex, Logs } from "./db/index.js";
 
 import {
   createUser,
@@ -147,8 +147,12 @@ app.get("/profile", async (req, res, next) => {
 });
 
 app.get("/pokedex", async (req, res, next) => {
-  let pokedex = PokeDex.findAll();
   try {
+    let pokedex = await Pokedex.findAll();
+    for (let i = 0; i < pokedex.length; i++) {
+      let professor = await Users.findByPk(pokedex[i].UserId);
+      pokedex[i].dataValues['lastUpdatedBy'] = professor.name;
+    }
     res.send(pokedex);
   } catch (err) {
     res.status(500).send(err.message);
@@ -198,11 +202,23 @@ app.put("/pokedex", async (req, res, next) => {
 
 app.delete("/pokedex", async (req, res, next) => {
   try {
-    await deletePokedexEntry(req.user);
+    const auth = req.header("Authorization");
+    const [, token] = auth.split(" ");
+    const userObj = jwt.verify(token, JWT_SECRET);
+    const user = await Users.findByPk(userObj.id);
+    await deletePokedexEntry(req.user, userObj);
   } catch (err) {
     res.status(400).send(err.mesage);
   }
   res.status(200).send(`You just got ${req.method} methoded`);
 });
 
+app.get("/logs", async (req, res, next) => {
+  try {
+    const logs = await Logs.findAll();
+    res.send(logs);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
 export default app;

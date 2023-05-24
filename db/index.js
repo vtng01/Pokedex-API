@@ -5,9 +5,9 @@ import {Users, Pokedex, Logs} from "./models/index.js";
 Users.hasMany(Pokedex);
 Pokedex.belongsTo(Users);
 
-//Logs:
-// Users.hasMany(Logs);
-// Logs.belongsTo(Users);
+//Logs
+Users.hasMany(Logs);
+Logs.belongsTo(Users);
 
 try {
     await db.authenticate();
