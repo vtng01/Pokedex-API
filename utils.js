@@ -117,7 +117,7 @@ async function createPokedexEntry(pokeObj, userObj) {
   try {
     const poke = await Pokedex.create({ pokeObj });
     await poke.setUser(userObj);
-    const log = await Log.create({
+    const log = await Logs.create({
       name: userObj.name,
       event: "User " + userObj.name + " created pokdex entry for: " + poke.name,
     });
@@ -137,7 +137,7 @@ async function updatePokedexEntry(pokeObj, userObj) {
     });
     await pokedex_entry.setUser(userObj);
     await pokedex_entry.update({ pokeObj });
-    const log = await Log.create({
+    const log = await Logs.create({
       name: userObj.name,
       event:
         "User " + userObj.name + " updated pokedex entry for: " + poke.name,
@@ -155,7 +155,7 @@ async function deletePokedexEntry(name, userObj) {
         name: name,
       },
     });
-    const log = await Log.create({
+    const log = await Logs.create({
       name: userObj.name,
       event:
         "User successfully" +
