@@ -33,25 +33,26 @@ async function updateUser(userObj) {
   }
 }
 
-async function createPokedexEntry(pokeObj) {
-  try {
-    return await PokeDex.create({ pokeObj });
-  } catch (err) {
-    throw new Error(err.message);
-  }
+async function createPokedexEntry(pokeObj, userObj) {
+    try {
+        const poke =  await Pokedex.create({pokeObj});
+        await poke.setUser(userObj);
+        return poke;
+    } catch (err) {
+        throw new Error(err.message);
+    }
 }
 
-async function updatePokedexEntry(pokeObj) {
-  try {
-    pokedex_entry = await Pokedex.findOne({
-      where: {
-        name: pokeObj.name,
-      },
-    });
-    await pokedex_entry.update({ pokeObj });
-  } catch (err) {
-    throw new Error(err.message);
-  }
+async function updatePokedexEntry(pokeObj, userObj) {
+    try {
+        let pokedex_entry = await Pokedex.findOne({where : {
+            name : pokeObj.name,
+        }});
+        await pokedex_entry.setUser(userObj);
+        await pokedex_entry.update({pokeObj});
+    } catch (err) {
+        throw new Error(err.message);
+    }
 }
 
 async function deletePokedexEntry(name) {
