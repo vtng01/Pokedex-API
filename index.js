@@ -129,8 +129,12 @@ app.get("/profile", async (req, res, next) => {
 });
 
 app.get("/pokedex", async (req, res, next) => {
-  let pokedex = PokeDex.findAll();
   try {
+    let pokedex = await Pokedex.findAll();
+    for (let i = 0; i < pokedex.length; i++) {
+      let professor = await Users.findByPk(pokedex[i].UserId);
+      pokedex[i].dataValues['lastUpdatedBy'] = professor.name;
+    }
     res.send(pokedex);
   } catch (err) {
     res.status(500).send(err.message);
