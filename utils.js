@@ -1,4 +1,4 @@
-import { db, Users, Pokedex } from "./db/index.js";
+import { db, Users, Pokedex, Logs } from "./db/index.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -18,13 +18,19 @@ async function createUser(userObj) {
   }
   const hashPw = await bcrypt.hash(password, SALT_COUNT);
   try {
-    return await Users.create({
+    const user = await Users.create({
       name,
       email,
       password: hashPw,
       occupation,
       isAdmin: false,
     });
+    log = await Logs.create({
+        user: user.UserId,
+        event: user.name + " registered successfully",
+    });
+    await log.setUser(user);
+    return user;
   } catch (err) {
     console.log("error got caught here", err);
     throw new Error(err.message);
@@ -41,18 +47,34 @@ async function updateUser(userObj, token) {
     // find user
     let user = await Users.findByPk(userDetail.id);
     const { name, email, password, occupation } = userObj;
+    let logEvent = '';
 
-    if (name) await user.update({ name });
+    if (name) {
+        await user.update({ name });
+        logEvent += " name ";
+    }
 
-    if (email) await user.update({ email });
+    if (email) {
+        await user.update({ email });
+        logEvent += " email ";
+    }
 
     if (password) {
       const hashPw = await bcrypt.hash(password, SALT_COUNT);
       await user.update({ password: hashPw });
+      logEvent += " password ";
     }
 
-    if (occupation) await user.update({ occupation });
+    if (occupation) {
+        await user.update({ occupation });
+        logEvent += " occupation ";
+    }
 
+    const log =  Logs.create({
+        user: user.name,
+        event: "User " + user.name + " updated user fields;" + logEvent,
+    });
+    await Log.setUser(user);
     return user;
   } catch (err) {
     throw new Error(err.message);
@@ -63,6 +85,11 @@ async function createPokedexEntry(pokeObj, userObj) {
   try {
     const poke = await Pokedex.create({ pokeObj });
     await poke.setUser(userObj);
+    const log = await Log.create({
+        name: userObj.name,
+        event: "User " + userObj.name + " created pokdex entry for: " + poke.name,
+    });
+    await log.setUser(userObj);
     return poke;
   } catch (err) {
     throw new Error(err.message);
@@ -78,17 +105,26 @@ async function updatePokedexEntry(pokeObj, userObj) {
     });
     await pokedex_entry.setUser(userObj);
     await pokedex_entry.update({ pokeObj });
+    const log = await Log.create({
+        name: userObj.name,
+        event: "User " + userObj.name + ' updated pokedex entry for: ' + poke.name,
+    });
+    await log.setUser(userObj);
   } catch (err) {
     throw new Error(err.message);
   }
 }
 
-async function deletePokedexEntry(name) {
+async function deletePokedexEntry(name, userObj) {
   try {
     await Pokedex.destroy({
       where: {
         name: name,
       },
+    });
+    const log = await Log.create({
+        name: userObj.name,
+        event: "User successfully" + userObj.name + " deleted pokdex entry for:" + name,
     });
   } catch (err) {
     throw new Error(err.message);
