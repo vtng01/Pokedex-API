@@ -1,8 +1,19 @@
 import { db, Users, Pokedex, Logs } from "./index.js";
 import { seedData, pokemonSeedData, logsSeedData } from "./seedData.js";
+import bcrypt from "bcryptjs";
+const SALT_COUNT = 10;
 
 async function genUsers(usersObject) {
-  await Users.bulkCreate(usersObject);
+  await usersObject.forEach(async (user) => {
+    const hashPw = await bcrypt.hash(user.password, SALT_COUNT);
+    await Users.create({
+      name: user.name,
+      email: user.email,
+      password: hashPw,
+      occupation: user.occupation,
+      isAdmin: user.isAdmin,
+    });
+  });
 }
 
 async function genPokemons(pokemonObject) {
