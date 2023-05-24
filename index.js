@@ -35,7 +35,7 @@ app.use(async (req, res, next) => {
       req.user = user;
       next();
     } catch (err) {
-      res.sendStatus(400).send(err.mesage);
+      res.status(400).send(err.mesage);
     }
   }
 });
@@ -53,7 +53,7 @@ app.post("/login", async (req, res, next) => {
     const id = user.getDataValue("id");
     const name = user.getDataValue("name");
     const userEmail = user.getDataValue("email");
-    const occupation = user.get("occupation");
+    const occupation = user.getDataValue("occupation");
     if (isAMatch) {
       const token = jwt.sign({ id, name, userEmail, occupation }, JWT_SECRET);
       res.send({ message: "You're logged in!", token });
@@ -97,12 +97,30 @@ app.use(async (req, res, next) => {
 
 // routes
 
+// list of all users
+app.get("/allUsers", async (req, res, next) => {
+  const user = req.user;
+  if (!user.getDataValue("isAdmin")) {
+    res
+      .status(403)
+      .send("You do not have sufficient permisssion to view this content.");
+  }
+  try {
+    const allUsers = await Users.findAll({
+      attributes: ["name", "email", "occupation"],
+    });
+    res.send(allUsers);
+  } catch (err) {
+    next();
+  }
+});
+
 // update user info
 app.put("/profile", async (req, res, next) => {
   // obtain token from user
   const auth = req.header("Authorization");
   if (!auth) {
-    res.sendStatus(400).send("You are not authorized to make an update");
+    res.status(400).send("You are not authorized to make an update");
   }
   const [, token] = auth.split(" ");
 
@@ -139,11 +157,13 @@ app.get("/pokedex", async (req, res, next) => {
 
 app.get("/pokedex/:name", async (req, res, next) => {
   try {
-    let pokedex_entry = await Pokedex.findOne({ where: {
-      name: req.params.name,
-    }});
-    let user = await Users.findByPk(pokedex_entry['UserId']);
-    pokedex_entry.dataValues['lastUpdatedBy'] = user.name;
+    let pokedex_entry = await Pokedex.findOne({
+      where: {
+        name: req.params.name,
+      },
+    });
+    let user = await Users.findByPk(pokedex_entry["UserId"]);
+    pokedex_entry.dataValues["lastUpdatedBy"] = user.name;
     res.send(pokedex_entry);
   } catch (err) {
     res.status(400).send(err.message);
