@@ -118,11 +118,13 @@ app.get("/pokedex", async (req, res, next) => {
   }
 });
 
-app.get("pokedex/:name", async (req, res, next) => {
+app.get("/pokedex/:name", async (req, res, next) => {
   try {
     let pokedex_entry = await Pokedex.findOne({ where: {
       name: req.params.name,
     }});
+    let user = await Users.findByPk(pokedex_entry['UserId']);
+    pokedex_entry.dataValues['lastUpdatedBy'] = user.name;
     res.send(pokedex_entry);
   } catch (err) {
     res.status(400).send(err.message);
