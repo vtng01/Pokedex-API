@@ -2,11 +2,11 @@ import { db } from "../db.js";
 import { Sequelize, DataTypes } from "sequelize";
 
 const Logs = db.define("Log", {
-  pokemonName: {
+  user: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  entry: {
+  event: {
     type: DataTypes.STRING,
     allowNull: false,
   },
