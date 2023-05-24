@@ -27,12 +27,16 @@ app.use(async (req, res, next) => {
   if (!auth) {
     next();
   } else {
-    const [, token] = auth.split(" ");
-    const userObj = jwt.verify(token, JWT_SECRET);
-    // find user
-    const user = await Users.findByPk(userObj.id);
-    req.user = user;
-    next();
+    try {
+      const [, token] = auth.split(" ");
+      const userObj = jwt.verify(token, JWT_SECRET);
+      // find user
+      const user = await Users.findByPk(userObj.id);
+      req.user = user;
+      next();
+    } catch (err) {
+      res.sendStatus(400).send(err.mesage);
+    }
   }
 });
 
@@ -57,7 +61,9 @@ app.post("/login", async (req, res, next) => {
       res.sendStatus(401);
     }
   } catch (err) {
-    res.status(400).send(err.message);
+    res
+      .status(400)
+      .send("Could not login. Your email or password maybe incorrect!");
   }
 });
 
@@ -90,10 +96,23 @@ app.use(async (req, res, next) => {
 });
 
 // routes
-app.put("/", async (req, res, next) => {
+
+// update user info
+app.put("/profile", async (req, res, next) => {
+  // obtain token from user
+  const auth = req.header("Authorization");
+  if (!auth) {
+    res.sendStatus(400).send("You are not authorized to make an update");
+  }
+  const [, token] = auth.split(" ");
+
   try {
-    await updateUser(req.body);
-    res.send(201);
+    const user = await updateUser(req.body, token);
+    res.send(
+      `Updated profile information successfully. Please sign in using ${user.getDataValue(
+        "email"
+      )} next time.`
+    );
   } catch (err) {
     res.status(400).send(err.message);
   }
@@ -129,7 +148,7 @@ app.get("/pokedex/:name", async (req, res, next) => {
   } catch (err) {
     res.status(400).send(err.message);
   }
-})
+});
 
 app.post("/pokedex", async (req, res, next) => {
   try {
