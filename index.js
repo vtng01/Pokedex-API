@@ -2,13 +2,20 @@ import express, { json } from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import { Users, Pokedex } from "./db/index.js";
-import {createUser, updateUser, createPokedexEntry, updatePokedexEntry, deletePokedexEntry} from "./utils.js";
+
+import {
+  createUser,
+  updateUser,
+  createPokedexEntry,
+  updatePokedexEntry,
+  deletePokedexEntry,
+} from "./utils.js";
+
 import jwt from "jsonwebtoken";
 dotenv.config();
 
 const app = express();
 const { JWT_SECRET } = process.env;
-const SALT_COUNT = 10;
 
 app.use(json());
 app.use(express.urlencoded({ extended: true }));
@@ -35,35 +42,38 @@ app.use(async (req, res, next) => {
 app.post("/login", async (req, res, next) => {
   const { email, password } = req.body;
   //   find user
-  const user = await Users.findOne({ where: { email } });
-  const userPassword = user.getDataValue("password");
-  const isAMatch = await bcrypt.compare(password, userPassword);
-  const id = user.getDataValue("id");
-  const name = user.getDataValue("name");
-  const userEmail = user.getDataValue("email");
-  const occupation = user.get("occupation");
-  if (isAMatch) {
-    const token = jwt.sign({ id, name, userEmail, occupation }, JWT_SECRET);
-    res.send({ message: "You're logged in!", token });
-  } else {
-    res.sendStatus(401);
+  try {
+    const user = await Users.findOne({ where: { email } });
+    const userPassword = user.getDataValue("password");
+    const isAMatch = await bcrypt.compare(password, userPassword);
+    const id = user.getDataValue("id");
+    const name = user.getDataValue("name");
+    const userEmail = user.getDataValue("email");
+    const occupation = user.get("occupation");
+    if (isAMatch) {
+      const token = jwt.sign({ id, name, userEmail, occupation }, JWT_SECRET);
+      res.send({ message: "You're logged in!", token });
+    } else {
+      res.sendStatus(401);
+    }
+  } catch (err) {
+    res.status(400).send(err.message);
   }
 });
 
 app.post("/register", async (req, res, next) => {
-  const { name, email, password, occupation } = req.body;
-  const hashPw = await bcrypt.hash(password, SALT_COUNT);
   // create user
-  let user = req.body;
-  user['isAdmin'] = false;
   try {
-    user = await createUser(user);
+    const user = await createUser(req.body);
+    const id = user.getDataValue("id");
+    const name = user.getDataValue("name");
+    const email = user.getDataValue("email");
+    const occupation = user.get("occupation");
+    const token = jwt.sign({ id, name, email, occupation }, JWT_SECRET);
+    res.send({ message: "You're logged in", token });
   } catch (err) {
     res.status(400).send(err.message);
   }
-  const id = user.getDataValue("id");
-  const token = jwt.sign({ id, name, email, occupation }, JWT_SECRET);
-  res.send({ message: "You're logged in", token });
 });
 // authorization
 app.use(async (req, res, next) => {
@@ -80,14 +90,24 @@ app.use(async (req, res, next) => {
 });
 
 // routes
-app.put('/', async (req, res, next) => {
+app.put("/", async (req, res, next) => {
   try {
     await updateUser(req.body);
     res.send(201);
   } catch (err) {
     res.status(400).send(err.message);
   }
-})
+});
+
+// get profile info
+app.get("/profile", async (req, res, next) => {
+  try {
+    // find user
+    res.send(req.user);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
 
 app.get("/pokedex", async (req, res, next) => {
   let pokedex = PokeDex.findAll();
@@ -120,7 +140,7 @@ app.post("/pokedex", async (req, res, next) => {
   } catch (err) {
     res.status(400).send(err.message);
   }
-})
+});
 
 app.put("/pokedex", async (req, res, next) => {
   try {
