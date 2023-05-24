@@ -1,7 +1,7 @@
 import express, { json } from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import { Users, PokeDex } from "./db/index.js";
+import { Users, Pokedex } from "./db/index.js";
 import {createUser, updateUser, createPokedexEntry, updatePokedexEntry, deletePokedexEntry} from "./utils.js";
 import jwt from "jsonwebtoken";
 dotenv.config();
@@ -99,15 +99,23 @@ app.get("/pokedex", async (req, res, next) => {
 });
 
 app.get("pokedex/:name", async (req, res, next) => {
-  let pokedex_entry = await Pokedex.findOne({ where: {
-    name: req.params.name,
-  }});
-  res.send(pokedex_entry);
+  try {
+    let pokedex_entry = await Pokedex.findOne({ where: {
+      name: req.params.name,
+    }});
+    res.send(pokedex_entry);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
 })
 
 app.post("/pokedex", async (req, res, next) => {
   try {
-    await createPokedexEntry(req.body);
+    const auth = req.header("Authorization");
+    const [, token] = auth.split(" ");
+    const userObj = jwt.verify(token, JWT_SECRET);
+    const user = await Users.findByPk(userObj.id);
+    await createPokedexEntry(req.body, user);
     res.sendStatus(201);
   } catch (err) {
     res.status(400).send(err.message);
@@ -116,7 +124,11 @@ app.post("/pokedex", async (req, res, next) => {
 
 app.put("/pokedex", async (req, res, next) => {
   try {
-    await updatePokedexEntry(req.body);
+    const auth = req.header("Authorization");
+    const [, token] = auth.split(" ");
+    const userObj = jwt.verify(token, JWT_SECRET);
+    const user = await Users.findByPk(userObj.id);
+    await updatePokedexEntry(req.body, User);
     res.sendStatus(201);
   } catch (err) {
     res.status(400).send(err.message);
