@@ -9,6 +9,7 @@ import {
   createPokedexEntry,
   updatePokedexEntry,
   deletePokedexEntry,
+  adminUpdateUser,
 } from "./utils.js";
 
 import jwt from "jsonwebtoken";
@@ -35,7 +36,7 @@ app.use(async (req, res, next) => {
       req.user = user;
       next();
     } catch (err) {
-      res.sendStatus(400).send(err.mesage);
+      res.status(400).send(err.mesage);
     }
   }
 });
@@ -53,7 +54,7 @@ app.post("/login", async (req, res, next) => {
     const id = user.getDataValue("id");
     const name = user.getDataValue("name");
     const userEmail = user.getDataValue("email");
-    const occupation = user.get("occupation");
+    const occupation = user.getDataValue("occupation");
     if (isAMatch) {
       const token = jwt.sign({ id, name, userEmail, occupation }, JWT_SECRET);
       res.send({ message: "You're logged in!", token });
@@ -97,12 +98,30 @@ app.use(async (req, res, next) => {
 
 // routes
 
+// list of all users
+app.get("/allUsers", async (req, res, next) => {
+  const user = req.user;
+  if (!user.getDataValue("isAdmin")) {
+    res
+      .status(403)
+      .send("You do not have sufficient permisssion to view this content.");
+  }
+  try {
+    const allUsers = await Users.findAll({
+      attributes: ["name", "email", "occupation"],
+    });
+    res.send(allUsers);
+  } catch (err) {
+    next();
+  }
+});
+
 // update user info
 app.put("/profile", async (req, res, next) => {
   // obtain token from user
   const auth = req.header("Authorization");
   if (!auth) {
-    res.sendStatus(400).send("You are not authorized to make an update");
+    res.status(400).send("You are not authorized to make an update");
   }
   const [, token] = auth.split(" ");
 
@@ -115,6 +134,31 @@ app.put("/profile", async (req, res, next) => {
     );
   } catch (err) {
     res.status(400).send(err.message);
+  }
+});
+
+// admin update user info
+app.put("/profile/:id", async (req, res, next) => {
+  const user = req.user;
+  if (!user.getDataValue("isAdmin")) {
+    res
+      .status(403)
+      .send(
+        "You do not have sufficient permission to update user information."
+      );
+  }
+
+  try {
+    await adminUpdateUser(id, req.body);
+
+    // const targetUser = await Users.findByPk(id)
+    // const {name, email, occupation, password} = req.body;
+    // if (name) await targetUser.update({name})
+    // if(email) await targetUser.update({email})
+    // if (occupation) await targetUser.update({occupation})
+    // if (password) await targetUser.update()
+  } catch (err) {
+    next();
   }
 });
 
@@ -133,7 +177,7 @@ app.get("/pokedex", async (req, res, next) => {
     let pokedex = await Pokedex.findAll();
     for (let i = 0; i < pokedex.length; i++) {
       let professor = await Users.findByPk(pokedex[i].UserId);
-      pokedex[i].dataValues['lastUpdatedBy'] = professor.name;
+      pokedex[i].dataValues["lastUpdatedBy"] = professor.name;
     }
     res.send(pokedex);
   } catch (err) {
@@ -143,11 +187,13 @@ app.get("/pokedex", async (req, res, next) => {
 
 app.get("/pokedex/:name", async (req, res, next) => {
   try {
-    let pokedex_entry = await Pokedex.findOne({ where: {
-      name: req.params.name,
-    }});
-    let user = await Users.findByPk(pokedex_entry['UserId']);
-    pokedex_entry.dataValues['lastUpdatedBy'] = user.name;
+    let pokedex_entry = await Pokedex.findOne({
+      where: {
+        name: req.params.name,
+      },
+    });
+    let user = await Users.findByPk(pokedex_entry["UserId"]);
+    pokedex_entry.dataValues["lastUpdatedBy"] = user.name;
     res.send(pokedex_entry);
   } catch (err) {
     res.status(400).send(err.message);

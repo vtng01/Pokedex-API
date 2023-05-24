@@ -26,8 +26,8 @@ async function createUser(userObj) {
       isAdmin: false,
     });
     log = await Logs.create({
-        user: user.UserId,
-        event: user.name + " registered successfully",
+      user: user.UserId,
+      event: user.name + " registered successfully",
     });
     await log.setUser(user);
     return user;
@@ -47,16 +47,16 @@ async function updateUser(userObj, token) {
     // find user
     let user = await Users.findByPk(userDetail.id);
     const { name, email, password, occupation } = userObj;
-    let logEvent = '';
+    let logEvent = "";
 
     if (name) {
-        await user.update({ name });
-        logEvent += " name ";
+      await user.update({ name });
+      logEvent += " name ";
     }
 
     if (email) {
-        await user.update({ email });
-        logEvent += " email ";
+      await user.update({ email });
+      logEvent += " email ";
     }
 
     if (password) {
@@ -66,28 +66,60 @@ async function updateUser(userObj, token) {
     }
 
     if (occupation) {
-        await user.update({ occupation });
-        logEvent += " occupation ";
+      await user.update({ occupation });
+      logEvent += " occupation ";
     }
 
-    const log =  Logs.create({
-        user: user.name,
-        event: "User " + user.name + " updated user fields;" + logEvent,
+    const log = Logs.create({
+      user: user.name,
+      event: "User " + user.name + " updated user fields;" + logEvent,
     });
-    await Log.setUser(user);
+    await Logs.setUser(user);
     return user;
   } catch (err) {
     throw new Error(err.message);
   }
 }
 
+async function adminUpdateUser(id, userObj) {
+  let logEvent = "";
+  const targetUser = await Users.findByPk(id);
+  const { name, email, occupation, password } = userObj;
+  if (name) {
+    await targetUser.update({ name });
+    logEvent += " name ";
+  }
+  if (email) {
+    await targetUser.update({ email });
+    logEvent += " email ";
+  }
+  if (occupation) {
+    await targetUser.update({ occupation });
+    logEvent += " occupation ";
+  }
+  if (password) {
+    await targetUser.update();
+    logEvent += " password ";
+  }
+
+  const log = Logs.create({
+    user: "Prof. Oak",
+    event:
+      "The admin (Prof. Oak) has updated user fields;" +
+      logEvent +
+      "for user with id: " +
+      id,
+  });
+  await Logs.setUser(user);
+}
+
 async function createPokedexEntry(pokeObj, userObj) {
   try {
     const poke = await Pokedex.create({ pokeObj });
     await poke.setUser(userObj);
-    const log = await Log.create({
-        name: userObj.name,
-        event: "User " + userObj.name + " created pokdex entry for: " + poke.name,
+    const log = await Logs.create({
+      name: userObj.name,
+      event: "User " + userObj.name + " created pokdex entry for: " + poke.name,
     });
     await log.setUser(userObj);
     return poke;
@@ -105,9 +137,10 @@ async function updatePokedexEntry(pokeObj, userObj) {
     });
     await pokedex_entry.setUser(userObj);
     await pokedex_entry.update({ pokeObj });
-    const log = await Log.create({
-        name: userObj.name,
-        event: "User " + userObj.name + ' updated pokedex entry for: ' + poke.name,
+    const log = await Logs.create({
+      name: userObj.name,
+      event:
+        "User " + userObj.name + " updated pokedex entry for: " + poke.name,
     });
     await log.setUser(userObj);
   } catch (err) {
@@ -122,9 +155,13 @@ async function deletePokedexEntry(name, userObj) {
         name: name,
       },
     });
-    const log = await Log.create({
-        name: userObj.name,
-        event: "User successfully" + userObj.name + " deleted pokdex entry for:" + name,
+    const log = await Logs.create({
+      name: userObj.name,
+      event:
+        "User successfully" +
+        userObj.name +
+        " deleted pokdex entry for:" +
+        name,
     });
   } catch (err) {
     throw new Error(err.message);
@@ -137,4 +174,5 @@ export {
   createPokedexEntry,
   updatePokedexEntry,
   deletePokedexEntry,
+  adminUpdateUser,
 };
