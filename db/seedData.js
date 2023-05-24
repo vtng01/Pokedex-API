@@ -43,15 +43,27 @@ const pokemonSeedData = [
 
 const logsSeedData = [
   {
-    pokemonName: "Pikachu",
+    name: "Prof. Oak",
+    entry: "Prof. Oak registered successfully",
+  },
+  {
+    name: "Prof. Yun",
+    entry: "Prof. Yun registered successfully",
+  },
+  {
+    name: "Prof. Smith",
+    entry: "Prof. Smith registered successfully",
+  },
+  {
+    name: "Prof. Oak",
     entry: "Pikachu was added to the Pokedex by Prof. Oak",
   },
   {
-    pokemonName: "Charizard",
+    name: "Prof. Yun",
     entry: "Charizard was added to the Pokedex by Prof. Yun",
   },
   {
-    pokemonName: "Blastoise",
+    name: "Prof. Smith",
     entry: "Blastoise was added to the Pokedex by Prof. Smith",
   },
 ];
