@@ -25,7 +25,7 @@ async function createUser(userObj) {
       occupation,
       isAdmin: false,
     });
-    log = await Logs.create({
+    const log = await Logs.create({
       user: user.UserId,
       event: user.name + " registered successfully",
     });
