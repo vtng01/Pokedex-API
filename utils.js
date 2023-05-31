@@ -25,6 +25,7 @@ async function createUser(userObj) {
       occupation,
       isAdmin: false,
     });
+
     await Logs.create({
       user: user.getDataValue("name"),
       event: user.getDataValue("name") + " registered successfully",
@@ -33,18 +34,14 @@ async function createUser(userObj) {
 
     return user;
   } catch (err) {
-    console.log("error got caught here", err);
+    console.log("Error: Failed to create user or log event - ", err);
     throw new Error(err.message);
   }
 }
 
 async function updateUser(userObj, token) {
   try {
-    console.log("im here at update user");
-    console.log(token);
-    console.log(JWT_SECRET);
     const userDetail = jwt.verify(token, JWT_SECRET);
-    console.log(userDetail);
     // find user
     let user = await Users.findByPk(userDetail.id);
     // const originalName = user.getDataValue('name')
