@@ -1,24 +1,24 @@
-import express, { json } from "express";
-import dotenv from "dotenv";
-import bcrypt from "bcryptjs";
-import { Users, Pokedex, Logs } from "./db/index.js";
+const express = require("express");
+const dotenv = require("dotenv");
+const bcrypt = require("bcryptjs");
+const { Users, Pokedex, Logs } = require("./db/index.js");
 
-import {
+const {
   createUser,
   updateUser,
   createPokedexEntry,
   updatePokedexEntry,
   deletePokedexEntry,
   adminUpdateUser,
-} from "./utils.js";
+} = require("./utils.js");
 
-import jwt from "jsonwebtoken";
+const jwt = require("jsonwebtoken");
 dotenv.config();
 
 const app = express();
 const { JWT_SECRET } = process.env;
 
-app.use(json());
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // middleware section
@@ -331,4 +331,5 @@ app.get("/logs/:id", async (req, res, next) => {
     res.status(400).send(err.message);
   }
 });
-export default app;
+
+module.exports = app;

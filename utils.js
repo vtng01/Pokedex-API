@@ -1,7 +1,7 @@
-import { db, Users, Pokedex, Logs } from "./db/index.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
+const { db, Users, Pokedex, Logs } = require("./db/index.js");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
 
 dotenv.config();
 
@@ -185,7 +185,7 @@ async function deletePokedexEntry(name, userObj) {
   }
 }
 
-export {
+module.exports = {
   createUser,
   updateUser,
   createPokedexEntry,

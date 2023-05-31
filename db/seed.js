@@ -1,6 +1,6 @@
-import { db, Users, Pokedex, Logs } from "./index.js";
-import { seedData, pokemonSeedData, logsSeedData } from "./seedData.js";
-import bcrypt from "bcryptjs";
+const { db, Users, Pokedex, Logs } = require("./index.js");
+const { seedData, pokemonSeedData, logsSeedData } = require("./seedData.js");
+const bcrypt = require("bcryptjs");
 const SALT_COUNT = 10;
 
 async function genUsers(usersObject) {
@@ -37,11 +37,11 @@ async function genInitialLogs(logsObject) {
   await Logs.bulkCreate(logsObject);
 }
 
-export default async function seed() {
+async function seed() {
   await genUsers(seedData);
   await genPokemons(pokemonSeedData);
   await assignPokedexEntry();
   await genInitialLogs(logsSeedData);
 }
 
-export { seed };
+module.exports = seed;

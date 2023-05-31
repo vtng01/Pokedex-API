@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "The number one API for all your PokeVerse",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "seed": "node db/seed.js",
     "start": "node server.js",
@@ -33,6 +32,10 @@
     "supertest": "^6.3.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.22.1",
+    "@babel/preset-env": "^7.22.4",
+    "@types/jest": "^29.5.1",
+    "babel-jest": "^29.5.0",
     "nodemon": "^2.0.22"
   }
 }

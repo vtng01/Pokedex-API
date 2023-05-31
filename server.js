@@ -1,8 +1,7 @@
-import { Sequelize } from "sequelize";
-import app from "./index.js";
-import { db } from "./db/db.js";
-import seed from "./db/seed.js";
-
+const { Sequelize } = require("sequelize");
+const app = require("./index.js");
+const { db } = require("./db/db.js");
+const seed = require("./db/seed.js");
 const PORT = 4000;
 
 app.listen(PORT, async () => {

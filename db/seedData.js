@@ -67,4 +67,4 @@ const logsSeedData = [
     event: "Blastoise was added to the Pokedex by Prof. Smith",
   },
 ];
-export { seedData, pokemonSeedData, logsSeedData };
+module.exports = { seedData, pokemonSeedData, logsSeedData };
