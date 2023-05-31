@@ -1,5 +1,5 @@
-import { db } from "../db.js";
-import { Sequelize, DataTypes, STRING } from "sequelize";
+const { db } = require("../db.js");
+const { Sequelize, DataTypes, STRING } = require("sequelize");
 
 const Pokedex = db.define("Pokedex", {
   name: {
@@ -16,4 +16,4 @@ const Pokedex = db.define("Pokedex", {
   },
 });
 
-export { Pokedex };
+module.exports = { Pokedex };

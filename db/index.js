@@ -1,5 +1,5 @@
-import {db} from "./db.js";
-import {Users, Pokedex, Logs} from "./models/index.js";
+const { db } = require("./db.js");
+const { Users, Pokedex, Logs } = require("./models/index.js");
 
 //Associations
 Users.hasMany(Pokedex);
@@ -9,11 +9,15 @@ Pokedex.belongsTo(Users);
 Users.hasMany(Logs);
 Logs.belongsTo(Users);
 
-try {
+async function connectToDatabase() {
+  try {
     await db.authenticate();
-    console.log('Connection has been established successfully.');
+    console.log("Connection has been established successfully.");
   } catch (error) {
-    console.error('Unable to connect to the database:', error);
+    console.error("Unable to connect to the database:", error);
+  }
 }
 
-export {db, Users, Pokedex, Logs};
+connectToDatabase();
+
+module.exports = { db, Users, Pokedex, Logs };

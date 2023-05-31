@@ -1,5 +1,5 @@
-import {Users} from "./Users.model.js";
-import {Pokedex} from './Pokedex.model.js';
-import {Logs} from "./Logs.model.js";
+const { Users } = require("./Users.model.js");
+const { Pokedex } = require("./Pokedex.model.js");
+const { Logs } = require("./Logs.model.js");
 
-export {Users, Pokedex, Logs};
+module.exports = { Users, Pokedex, Logs };
