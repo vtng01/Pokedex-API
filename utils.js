@@ -25,11 +25,13 @@ async function createUser(userObj) {
       occupation,
       isAdmin: false,
     });
-    const log = await Logs.create({
-      user: user.UserId,
-      event: user.name + " registered successfully",
+
+    await Logs.create({
+      user: user.getDataValue("name"),
+      event: user.getDataValue("name") + " registered successfully",
+      UserId: user.getDataValue("id"),
     });
-    await log.setUser(user);
+
     return user;
   } catch (err) {
     console.log("Error: Failed to create user or log event - ", err);
@@ -42,6 +44,7 @@ async function updateUser(userObj, token) {
     const userDetail = jwt.verify(token, JWT_SECRET);
     // find user
     let user = await Users.findByPk(userDetail.id);
+    // const originalName = user.getDataValue('name')
     const { name, email, password, occupation } = userObj;
     let logEvent = "";
 
@@ -61,16 +64,19 @@ async function updateUser(userObj, token) {
       logEvent += " password ";
     }
 
-    if (occupation) {
-      await user.update({ occupation });
-      logEvent += " occupation ";
-    }
+    // do not allow user the ability to update their occupation, they be lying
+    // if (occupation) {
+    //   await user.update({ occupation });
+    //   logEvent += " occupation ";
+    // }
 
     const log = Logs.create({
-      user: user.name,
-      event: "User " + user.name + " updated user fields;" + logEvent,
+      user: user.getDataValue("name"),
+      event:
+        "User " + user.getDataValue("name") + " updated user fields" + logEvent,
+      UserId: userDetail.id,
     });
-    await Logs.setUser(user);
+    // await Logs.setUser(user);
     return user;
   } catch (err) {
     throw new Error(err.message);
@@ -105,19 +111,34 @@ async function adminUpdateUser(id, userObj) {
       logEvent +
       "for user with id: " +
       id,
+    UserId: 1,
   });
-  await Logs.setUser(user);
+
+  return targetUser;
+  // await Logs.setUser(user);
 }
 
 async function createPokedexEntry(pokeObj, userObj) {
   try {
-    const poke = await Pokedex.create({ pokeObj });
-    await poke.setUser(userObj);
-    const log = await Logs.create({
-      name: userObj.name,
-      event: "User " + userObj.name + " created pokdex entry for: " + poke.name,
+    const { name, type, description } = pokeObj;
+    const poke = await Pokedex.create({
+      name,
+      type,
+      description,
+      UserId: userObj.getDataValue("id"),
     });
-    await log.setUser(userObj);
+    const userName = userObj.getDataValue("name");
+    await Logs.create({
+      user: userName,
+      event:
+        "User " +
+        userName +
+        " created pokdex entry for: " +
+        poke.getDataValue("name"),
+      UserId: userObj.getDataValue("id"),
+    });
+    console.log("hiiiii");
+
     return poke;
   } catch (err) {
     throw new Error(err.message);

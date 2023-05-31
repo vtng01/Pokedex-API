@@ -57,6 +57,7 @@ app.post("/login", async (req, res, next) => {
     const occupation = user.getDataValue("occupation");
     if (isAMatch) {
       const token = jwt.sign({ id, name, userEmail, occupation }, JWT_SECRET);
+      await Logs.create({ user: name, event: `${name} logged in`, UserId: id });
       res.send({ message: "You're logged in!", token });
     } else {
       res.sendStatus(401);
@@ -101,7 +102,14 @@ app.use(async (req, res, next) => {
 // list of all users
 app.get("/allUsers", async (req, res, next) => {
   const user = req.user;
+  const name = user.getDataValue("name");
+  const id = user.getDataValue("id");
   if (!user.getDataValue("isAdmin")) {
+    await Logs.create({
+      user: name,
+      event: `${name} attempted to view all users but they do not have permission`,
+      UserId: id,
+    });
     res
       .status(403)
       .send("You do not have sufficient permisssion to view this content.");
@@ -109,6 +117,11 @@ app.get("/allUsers", async (req, res, next) => {
   try {
     const allUsers = await Users.findAll({
       attributes: ["name", "email", "occupation"],
+    });
+    await Logs.create({
+      user: name,
+      event: `${name} viewed list of all users`,
+      UserId: id,
     });
     res.send(allUsers);
   } catch (err) {
@@ -140,6 +153,7 @@ app.put("/profile", async (req, res, next) => {
 // admin update user info
 app.put("/profile/:id", async (req, res, next) => {
   const user = req.user;
+
   if (!user.getDataValue("isAdmin")) {
     res
       .status(403)
@@ -149,7 +163,10 @@ app.put("/profile/:id", async (req, res, next) => {
   }
 
   try {
-    await adminUpdateUser(id, req.body);
+    console.log("hi there admin!!!!");
+    const adminId = req.user.getDataValue("id");
+    console.log("what is your id?", adminId);
+    const user = await adminUpdateUser(req.params.id, req.body);
 
     // const targetUser = await Users.findByPk(id)
     // const {name, email, occupation, password} = req.body;
@@ -157,6 +174,11 @@ app.put("/profile/:id", async (req, res, next) => {
     // if(email) await targetUser.update({email})
     // if (occupation) await targetUser.update({occupation})
     // if (password) await targetUser.update()
+    res.send(
+      `Updated profile information successfully. Please sign in using ${user.getDataValue(
+        "email"
+      )} next time if you are ${user.getDataValue("name")}.`
+    );
   } catch (err) {
     next();
   }
@@ -193,7 +215,14 @@ app.get("/pokedex/:name", async (req, res, next) => {
       },
     });
     let user = await Users.findByPk(pokedex_entry["UserId"]);
+    const name = user.getDataValue("name");
+    const id = user.getDataValue("id");
     pokedex_entry.dataValues["lastUpdatedBy"] = user.name;
+    await Logs.create({
+      user: name,
+      event: `${name} viewed Pokedex details for ${req.params.name}`,
+      UserID: id,
+    });
     res.send(pokedex_entry);
   } catch (err) {
     res.status(400).send(err.message);
@@ -206,8 +235,15 @@ app.post("/pokedex", async (req, res, next) => {
     const [, token] = auth.split(" ");
     const userObj = jwt.verify(token, JWT_SECRET);
     const user = await Users.findByPk(userObj.id);
-    await createPokedexEntry(req.body, user);
-    res.sendStatus(201);
+    console.log("attempting to create pokemon entry");
+    if (user.getDataValue("occupation") == "Researcher") {
+      await createPokedexEntry(req.body, user);
+      res.sendStatus(201);
+    } else {
+      res
+        .status(401)
+        .send("You do you not have permission to add new Pokedex entries");
+    }
   } catch (err) {
     res.status(400).send(err.message);
   }
@@ -240,9 +276,57 @@ app.delete("/pokedex", async (req, res, next) => {
 });
 
 app.get("/logs", async (req, res, next) => {
+  const user = req.user;
+  const name = user.getDataValue("name");
+  let logs = "";
   try {
-    const logs = await Logs.findAll();
+    await Logs.create({
+      user: name,
+      event: `${name} viewed the logs`,
+      UserId: user.getDataValue("id"),
+    });
+    if (user.getDataValue("isAdmin")) {
+      logs = await Logs.findAll();
+    } else {
+      logs = await Logs.findAll({
+        where: {
+          UserId: user.getDataValue("id"),
+        },
+      });
+    }
+
     res.send(logs);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
+
+// viewing other people's logs
+app.get("/logs/:id", async (req, res, next) => {
+  const user = req.user;
+  const name = user.getDataValue("name");
+  try {
+    if (user.getDataValue("isAdmin")) {
+      await Logs.create({
+        user: name,
+        event: `${name} is viewing the logs entry of user with id ${req.params.id}`,
+        UserId: user.getDataValue("id"),
+      });
+      const logs = await Logs.findAll({
+        where: {
+          UserId: req.params.id,
+        },
+      });
+
+      res.send(logs);
+    } else {
+      await Logs.create({
+        user: name,
+        event: `${name} is attempted to view the logs entry of user with id ${req.params.id} but they do not have permission!`,
+        UserId: user.getDataValue("id"),
+      });
+      res.status(400).send("You do not have permission to use this feature");
+    }
   } catch (err) {
     res.status(400).send(err.message);
   }
