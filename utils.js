@@ -15,27 +15,29 @@ async function createUser(userObj) {
   const user = await Users.findOne({ where: { email } });
   if (user) {
     throw new Error("This email has already been registered!");
-  }
-  const hashPw = await bcrypt.hash(password, SALT_COUNT);
-  try {
-    const user = await Users.create({
-      name,
-      email,
-      password: hashPw,
-      occupation,
-      isAdmin: false,
-    });
+  } else {
 
-    await Logs.create({
-      user: user.getDataValue("name"),
-      event: user.getDataValue("name") + " registered successfully",
-      UserId: user.getDataValue("id"),
-    });
+    const hashPw = await bcrypt.hash(password, SALT_COUNT);
+    try {
+      const user = await Users.create({
+        name,
+        email,
+        password: hashPw,
+        occupation,
+        isAdmin: false,
+      });
 
-    return user;
-  } catch (err) {
-    console.log("Error: Failed to create user or log event - ", err);
-    throw new Error(err.message);
+      await Logs.create({
+        user: user.getDataValue("name"),
+        event: user.getDataValue("name") + " registered successfully",
+        UserId: user.getDataValue("id"),
+      });
+
+      return user;
+    } catch (err) {
+      console.log("Error: Failed to create user or log event - ", err);
+      throw new Error(err.message);
+    }
   }
 }
 
