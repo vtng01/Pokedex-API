@@ -78,7 +78,7 @@ app.post("/register", async (req, res, next) => {
     const email = user.getDataValue("email");
     const occupation = user.get("occupation");
     const token = jwt.sign({ id, name, email, occupation }, JWT_SECRET);
-    res.send({ message: "You're logged in", token });
+    res.send({ message: "You're registered sucessfully!", token });
   } catch (err) {
     res.status(400).send(err.message);
   }
@@ -113,19 +113,20 @@ app.get("/allUsers", async (req, res, next) => {
     res
       .status(403)
       .send("You do not have sufficient permisssion to view this content.");
-  }
-  try {
-    const allUsers = await Users.findAll({
-      attributes: ["name", "email", "occupation"],
-    });
-    await Logs.create({
-      user: name,
-      event: `${name} viewed list of all users`,
-      UserId: id,
-    });
-    res.send(allUsers);
-  } catch (err) {
-    next();
+  } else {
+    try {
+      const allUsers = await Users.findAll({
+        attributes: ["name", "email", "occupation"],
+      });
+      await Logs.create({
+        user: name,
+        event: `${name} viewed list of all users`,
+        UserId: id,
+      });
+      res.send(allUsers);
+    } catch (err) {
+      next();
+    }
   }
 });
 
