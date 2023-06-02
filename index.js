@@ -21,6 +21,10 @@ const { JWT_SECRET } = process.env;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/", async (req, res, next) => {
+  res.redirect("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+});
+
 // middleware section
 // authentication
 app.use(async (req, res, next) => {
