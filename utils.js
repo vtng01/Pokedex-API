@@ -16,7 +16,6 @@ async function createUser(userObj) {
   if (user) {
     throw new Error("This email has already been registered!");
   } else {
-
     const hashPw = await bcrypt.hash(password, SALT_COUNT);
     try {
       const user = await Users.create({
@@ -149,17 +148,28 @@ async function createPokedexEntry(pokeObj, userObj) {
 
 async function updatePokedexEntry(pokeObj, userObj) {
   try {
+    const { name, type, description } = pokeObj;
     let pokedex_entry = await Pokedex.findOne({
       where: {
-        name: pokeObj.name,
+        name: name,
       },
     });
+    if (type) {
+      await pokedex_entry.update({ type });
+    }
+
+    if (description) {
+      await pokedex_entry.update({ description });
+    }
+
     await pokedex_entry.setUser(userObj);
-    await pokedex_entry.update({ pokeObj });
+    // await pokedex_entry.update({ pokeObj });
+
+    const userName = userObj.getDataValue("name");
     const log = await Logs.create({
-      name: userObj.name,
-      event:
-        "User " + userObj.name + " updated pokedex entry for: " + poke.name,
+      user: userName,
+      event: "User " + userName + " updated pokedex entry for: " + pokeObj.name,
+      UserId: userObj.getDataValue("id"),
     });
     await log.setUser(userObj);
   } catch (err) {
@@ -174,13 +184,14 @@ async function deletePokedexEntry(name, userObj) {
         name: name,
       },
     });
-    const log = await Logs.create({
-      name: userObj.name,
+    const userName = userObj.getDataValue("name");
+
+    console.log("user name for deletion", userName);
+    await Logs.create({
+      user: userName,
       event:
-        "User successfully" +
-        userObj.name +
-        " deleted pokdex entry for:" +
-        name,
+        "User successfully" + userName + " deleted pokedex entry for:" + name,
+      UserId: userObj.getDataValue("id"),
     });
   } catch (err) {
     throw new Error(err.message);

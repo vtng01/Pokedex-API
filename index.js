@@ -255,8 +255,14 @@ app.put("/pokedex", async (req, res, next) => {
     const [, token] = auth.split(" ");
     const userObj = jwt.verify(token, JWT_SECRET);
     const user = await Users.findByPk(userObj.id);
-    await updatePokedexEntry(req.body, User);
-    res.sendStatus(201);
+    if (user.getDataValue("occupation") == "Researcher") {
+      await updatePokedexEntry(req.body, user);
+      res.send("Successfully updated Pokedex entry for " + req.body.name);
+    } else {
+      res
+        .status(403)
+        .send("You do not have permission to update Pokedex entries");
+    }
   } catch (err) {
     res.status(400).send(err.message);
   }
@@ -268,11 +274,18 @@ app.delete("/pokedex", async (req, res, next) => {
     const [, token] = auth.split(" ");
     const userObj = jwt.verify(token, JWT_SECRET);
     const user = await Users.findByPk(userObj.id);
-    await deletePokedexEntry(req.user, userObj);
+
+    if (user.getDataValue("occupation") == "Researcher") {
+      await deletePokedexEntry(req.body.name, user);
+      res.send("Successfully deleted Pokedex entry for " + req.body.name);
+    } else {
+      res
+        .status(403)
+        .send("You do not have permission to delete Pokedex entries");
+    }
   } catch (err) {
     res.status(400).send(err.mesage);
   }
-  res.status(200).send(`You just got ${req.method} methoded`);
 });
 
 app.get("/logs", async (req, res, next) => {
