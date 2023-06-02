@@ -1,18 +1,25 @@
 const request = require("supertest");
 const app = require("../index.js");
-
+const {
+  createUser,
+  updateUser,
+  createPokedexEntry,
+  updatePokedexEntry,
+  deletePokedexEntry,
+  adminUpdateUser,
+} = require("../utils.js");
 // db setup
 const { Users, Pokedex, Logs, db } = require("../db/index.js");
 const seed = require("../db/seed.js");
 
-describe("POST /login", () => {
-  beforeAll(async () => {
-    // rebuild db before the test suite runs
-    await db.sync({
-      force: true,
-    });
-    await seed();
+beforeAll(async () => {
+  // rebuild db before the test suite runs
+  await db.sync({
+    force: true,
   });
+  await seed();
+});
+describe("POST /login", () => {
   it("should return a message that email or password is incorrect when failed to login", async () => {
     const invalidLogin = {
       email: "doesNotExist@email.com",
@@ -150,4 +157,52 @@ describe("GET /allUsers", () => {
 
     expect(response.body).toEqual(actual);
   });
+});
+
+// test some utils functions
+describe("Test createUser", () => {
+  test("test createUser creates user successfully", async () => {
+    const testData = {
+      name: "Test User",
+      email: "test@jest.com",
+      occupation: "test",
+      password: "test",
+    };
+    const testUser = await createUser(testData);
+    const userObj = await Users.findOne({
+      where: {
+        name: "Test User",
+      },
+    });
+    const comapreResult = {
+      name: userObj.name,
+      email: userObj.email,
+      occupation: userObj.occupation,
+      password: "test",
+    };
+    expect(comapreResult).toEqual(testData);
+  });
+  // test("test createUser throws when user already exist", async () => {
+  //   const testData = {
+  //     name: "Test User",
+  //     email: "test@jest.com",
+  //     occupation: "test",
+  //     password: "test",
+  //   };
+
+  //   // create the user
+  //   await createUser(testData);
+
+  //   const shouldThrowError = async () => {
+  //     await createUser(testData);
+  //   };
+
+  //   await expect(shouldThrowError()).rejects.toThrow(
+  //     "This email has already been registered!"
+  //   );
+  // });
+});
+
+afterAll(async () => {
+  await db.close();
 });
