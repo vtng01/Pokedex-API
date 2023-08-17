@@ -2,7 +2,7 @@
 
 FROM node:17
 
-WORKDIR /usr/src/app
+WORKDIR ./
 
 COPY package*.json ./
 
@@ -10,8 +10,6 @@ RUN npm install
 
 COPY . .
 
-RUN npm start
-
-CMD ["node", "start/server.js"]
+CMD ["node", "index.js"]
 
 EXPOSE 3000
